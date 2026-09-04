@@ -2,7 +2,7 @@
   "name": "Buscador y Autocompletado desde Google Sheets",
   "description": "Busca un registro por ID en una pestaña de Google Sheets y autocompleta los campos coincidentes de Jotform.",
   "version": "1.0.0",
-  "url": "https://TU-USUARIO.github.io/TU-REPOSITORIO/",
+  "url": "https://jonathan2004arenas.github.io/widget-personalizado-mejorado/",
   "iframe": true,
   "settings": {
     "hoja": {

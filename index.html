@@ -364,64 +364,54 @@
 
 
                     /* ==========================================
-                    OBTENER TODA LA CONFIGURACIÓN
+                    OBTENER CONFIGURACIÓN
                     ========================================== */
 
-                    const settings =
-                        JFCustomWidget.getWidgetSettings();
+                    const configuracion =
+                        JFCustomWidget.getWidgetSetting(
+                            "CONFIGURACION"
+                        ) || "";
 
 
                     console.log(
-                        "⚙️ CONFIGURACIÓN COMPLETA RECIBIDA:",
-                        settings
+                        "⚙️ CONFIGURACIÓN RECIBIDA:",
+                        configuracion
                     );
 
 
                     /* ==========================================
-                    OBTENER LOS PARÁMETROS INDIVIDUALMENTE
+                    VALIDAR CONFIGURACIÓN
                     ========================================== */
 
-                    const hojaConfigurada =
-                        JFCustomWidget.getWidgetSetting(
-                            "HOJA"
+                    if (!configuracion) {
+
+                        console.error(
+                            "❌ Falta configurar CONFIGURACION"
                         );
 
+                        return;
 
-                    const columnaConfigurada =
-                        JFCustomWidget.getWidgetSetting(
-                            "COLUMNA_ID"
-                        );
-
-
-                    console.log(
-                        "📄 Valor directo de HOJA:",
-                        hojaConfigurada
-                    );
-
-
-                    console.log(
-                        "🔑 Valor directo de COLUMNA_ID:",
-                        columnaConfigurada
-                    );
+                    }
 
 
                     /* ==========================================
-                    GUARDAR CONFIGURACIÓN
+                    SEPARAR HOJA Y COLUMNA
                     ========================================== */
+
+                    const partes =
+                        configuracion
+                            .split("|")
+                            .map(
+                                valor => valor.trim()
+                            );
+
 
                     HOJA =
-                        hojaConfigurada ||
-                        settings.HOJA ||
-                        settings.hoja ||
-                        "";
+                        partes[0] || "";
 
 
                     COLUMNA_ID =
-                        columnaConfigurada ||
-                        settings.COLUMNA_ID ||
-                        settings.columnaID ||
-                        settings.columna_id ||
-                        "";
+                        partes[1] || "";
 
 
                     console.log(
@@ -437,13 +427,13 @@
 
 
                     /* ==========================================
-                    VALIDACIÓN DETALLADA
+                    VALIDACIÓN
                     ========================================== */
 
                     if (!HOJA) {
 
                         console.error(
-                            "❌ Falta configurar el parámetro HOJA"
+                            "❌ Falta el nombre de la hoja"
                         );
 
                     }
@@ -452,7 +442,7 @@
                     if (!COLUMNA_ID) {
 
                         console.error(
-                            "❌ Falta configurar el parámetro COLUMNA_ID"
+                            "❌ Falta el nombre de la columna ID"
                         );
 
                     }
@@ -472,7 +462,6 @@
                 }
 
             );
-
 
             /* ==========================================
             ENVÍO DEL FORMULARIO

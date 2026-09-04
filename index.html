@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <script src="https://js.jotform.com/JotFormCustomWidget.min.js"></script>
+
+</head>
+
+
+<body>
+
+    <div>
+
+        <input
+            type="text"
+            id="idBusqueda"
+            placeholder="Ingrese el ID"
+        >
+
+        <button
+            type="button"
+            id="btnBuscar"
+        >
+            Buscar
+        </button>
+
+
+        <div id="mensaje"></div>
+
+    </div>
+
+
+    <script>
+
+        /* =====================================================
+           CONFIGURACIÓN
+        ===================================================== */
+
+        const API_URL =
+        "https://script.google.com/macros/s/AKfycbyKcUWjVBA4n_frrsGQy5JEm-SL26cWmG3FBfMgoIVXudayJamM30hcIdh0KdxuJu5LDQ/exec";
+
+
+        /*
+        CONFIGURACIÓN TEMPORAL PARA LA PRUEBA
+
+        Después vamos a hacer que estos valores
+        sean configurables desde Jotform.
+        */
+
+        let HOJA = "";
+        let COLUMNA_ID = "";
+
+
+        /* =====================================================
+           ELEMENTOS HTML
+        ===================================================== */
+
+        const campoID =
+        document.getElementById(
+            "idBusqueda"
+        );
+
+
+        const botonBuscar =
+        document.getElementById(
+            "btnBuscar"
+        );
+
+
+        const mensaje =
+        document.getElementById(
+            "mensaje"
+        );
+
+
+        let datosEncontrados = null;
+
+
+        /* =====================================================
+           BUSCAR REGISTRO
+        ===================================================== */
+
+        async function buscarRegistro() {
+
+            if (!HOJA || !COLUMNA_ID) {
+
+                mensaje.textContent =
+                    "⚠️ El widget aún no está configurado";
+
+                console.error(
+                    "Falta configurar HOJA o COLUMNA_ID"
+                );
+
+                return;
+
+            }
+
+            const id =
+            campoID.value.trim();
+
+
+            if (!id) {
+
+                mensaje.textContent =
+                "Ingrese un ID";
+
+                return;
+
+            }
+
+
+            mensaje.textContent =
+            "⏳ Buscando...";
+
+
+            try {
+
+                const url =
+                    API_URL +
+                    "?hoja=" +
+                    encodeURIComponent(HOJA) +
+                    "&columnaID=" +
+                    encodeURIComponent(COLUMNA_ID) +
+                    "&id=" +
+                    encodeURIComponent(id);
+
+
+                console.log(
+                    "🌐 Consultando:",
+                    url
+                );
+
+
+                const respuesta =
+                await fetch(url);
+
+
+                const resultado =
+                await respuesta.json();
+
+
+                console.log(
+                    "📦 Respuesta API:",
+                    resultado
+                );
+
+
+                /* =============================================
+                   REGISTRO NO ENCONTRADO
+                ============================================= */
+
+                if (
+                    !resultado.encontrado
+                ) {
+
+                    mensaje.textContent =
+                    "❌ Registro no encontrado";
+
+                    datosEncontrados =
+                    null;
+
+                    return;
+
+                }
+
+
+                /* =============================================
+                   REGISTRO ENCONTRADO
+                ============================================= */
+
+                datosEncontrados =
+                resultado.datos;
+
+
+                mensaje.textContent =
+                "✅ Registro encontrado";
+
+
+                console.log(
+                    "📋 Datos encontrados:",
+                    datosEncontrados
+                );
+
+
+                /* =============================================
+                   CREAR AUTOMÁTICAMENTE LOS CAMPOS
+                   PARA ENVIAR A JOTFORM
+                ============================================= */
+
+                const camposJotform = [];
+
+
+                Object.entries(
+                    datosEncontrados
+                ).forEach(
+
+                    function(
+                        [nombreCampo, valor]
+                    ) {
+
+                        /*
+                        Cada encabezado de Google Sheets
+                        se convierte automáticamente
+                        en un campo de Jotform.
+                        */
+
+                        camposJotform.push({
+
+                            label:
+                            nombreCampo,
+
+                            value:
+                            valor || ""
+
+                        });
+
+                    }
+
+                );
+
+
+                console.log(
+                    "📤 Campos para Jotform:",
+                    camposJotform
+                );
+
+
+                /* =============================================
+                   ENVIAR TODOS LOS CAMPOS A JOTFORM
+                ============================================= */
+
+                if (
+                    typeof JFCustomWidget !==
+                    "undefined"
+                ) {
+
+                    JFCustomWidget.setFieldsValueByLabel(
+                        camposJotform
+                    );
+
+
+                    /*
+                    Guardar ID como valor del Widget
+                    */
+
+                    JFCustomWidget.sendData({
+
+                        valid:
+                        true,
+
+                        value:
+                        id
+
+                    });
+
+
+                    console.log(
+                        "✅ Datos enviados a Jotform"
+                    );
+
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    "❌ Error:",
+                    error
+                );
+
+
+                mensaje.textContent =
+                "❌ Error consultando la base de datos";
+
+            }
+
+        }
+
+
+        /* =====================================================
+           EVENTOS
+        ===================================================== */
+
+        botonBuscar.addEventListener(
+
+            "click",
+
+            function() {
+
+                buscarRegistro();
+
+            }
+
+        );
+
+
+        campoID.addEventListener(
+
+            "keydown",
+
+            function(event) {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
+                    event.preventDefault();
+
+                    buscarRegistro();
+
+                }
+
+            }
+
+        );
+
+
+        campoID.addEventListener(
+
+            "blur",
+
+            function() {
+
+                if (
+                    campoID.value.trim() !== ""
+                ) {
+
+                    buscarRegistro();
+
+                }
+
+            }
+
+        );
+
+
+        /* =====================================================
+           CONEXIÓN CON JOTFORM
+        ===================================================== */
+
+        if (
+            typeof JFCustomWidget !==
+            "undefined"
+        ) {
+
+            JFCustomWidget.subscribe(
+
+                "ready",
+
+                function() {
+
+                    console.log(
+                        "🟢 Widget genérico conectado con Jotform"
+                    );
+
+                    /*
+                    OBTENER CONFIGURACIÓN DEL WIDGET
+                    */
+
+                    JFCustomWidget.getWidgetSettings(
+                        function(settings) {
+
+                            console.log(
+                                "⚙️ Configuración recibida:",
+                                settings
+                            );
+
+
+                            HOJA =
+                                settings.hoja ||
+                                "";
+
+
+                            COLUMNA_ID =
+                                settings.columnaID ||
+                                "";
+
+
+                            console.log(
+                                "📄 Hoja configurada:",
+                                HOJA
+                            );
+
+
+                            console.log(
+                                "🔑 Columna ID configurada:",
+                                COLUMNA_ID
+                            );
+
+                        }
+                    );
+
+                }
+
+            );
+
+
+            JFCustomWidget.subscribe(
+
+                "submit",
+
+                function() {
+
+                    JFCustomWidget.sendSubmit({
+
+                        valid:
+                        true,
+
+                        value:
+                        JSON.stringify(
+                            datosEncontrados || {}
+                        )
+
+                    });
+
+                }
+
+            );
+
+        }
+
+    </script>
+
+</body>
+
+</html>

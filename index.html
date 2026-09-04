@@ -343,8 +343,8 @@
         );
 
 
-        /* =====================================================
-           CONEXIÓN CON JOTFORM
+        /*/* =====================================================
+        CONEXIÓN CON JOTFORM
         ===================================================== */
 
         if (
@@ -362,92 +362,121 @@
                         "🟢 Widget genérico conectado con Jotform"
                     );
 
-                    JFCustomWidget.getWidgetSettings(
-                        function(settings) {
 
-                            console.log(
-                                "⚙️ Configuración completa recibida:",
-                                settings
-                            );
+                    /* ==========================================
+                    OBTENER TODA LA CONFIGURACIÓN
+                    ========================================== */
 
-
-                            /*
-                            ==========================================
-                            OBTENER HOJA
-                            ==========================================
-                            */
-
-                            HOJA =
-                                settings.HOJA ||
-                                settings.hoja ||
-                                "";
+                    const settings =
+                        JFCustomWidget.getWidgetSettings();
 
 
-                            /*
-                            ==========================================
-                            OBTENER COLUMNA ID
-                            ==========================================
-                            */
-
-                            COLUMNA_ID =
-                                settings.COLUMNA_ID ||
-                                settings.columnaID ||
-                                settings.columna_id ||
-                                "";
-
-
-                            console.log(
-                                "📄 HOJA CONFIGURADA:",
-                                HOJA
-                            );
-
-
-                            console.log(
-                                "🔑 COLUMNA_ID CONFIGURADA:",
-                                COLUMNA_ID
-                            );
-
-
-                            /*
-                            ==========================================
-                            VALIDAR CONFIGURACIÓN
-                            ==========================================
-                            */
-
-                            if (
-                                !HOJA ||
-                                !COLUMNA_ID
-                            ) {
-
-                                console.error(
-                                    "❌ No se recibieron correctamente los parámetros"
-                                );
-
-                                console.log(
-                                    "🔍 Configuración disponible:",
-                                    settings
-                                );
-
-                            } else {
-
-                                console.log(
-                                    "✅ Widget configurado correctamente"
-                                );
-
-                            }
-
-                        }
-
+                    console.log(
+                        "⚙️ CONFIGURACIÓN COMPLETA RECIBIDA:",
+                        settings
                     );
+
+
+                    /* ==========================================
+                    OBTENER LOS PARÁMETROS INDIVIDUALMENTE
+                    ========================================== */
+
+                    const hojaConfigurada =
+                        JFCustomWidget.getWidgetSetting(
+                            "HOJA"
+                        );
+
+
+                    const columnaConfigurada =
+                        JFCustomWidget.getWidgetSetting(
+                            "COLUMNA_ID"
+                        );
+
+
+                    console.log(
+                        "📄 Valor directo de HOJA:",
+                        hojaConfigurada
+                    );
+
+
+                    console.log(
+                        "🔑 Valor directo de COLUMNA_ID:",
+                        columnaConfigurada
+                    );
+
+
+                    /* ==========================================
+                    GUARDAR CONFIGURACIÓN
+                    ========================================== */
+
+                    HOJA =
+                        hojaConfigurada ||
+                        settings.HOJA ||
+                        settings.hoja ||
+                        "";
+
+
+                    COLUMNA_ID =
+                        columnaConfigurada ||
+                        settings.COLUMNA_ID ||
+                        settings.columnaID ||
+                        settings.columna_id ||
+                        "";
+
+
+                    console.log(
+                        "📄 HOJA FINAL:",
+                        HOJA
+                    );
+
+
+                    console.log(
+                        "🔑 COLUMNA_ID FINAL:",
+                        COLUMNA_ID
+                    );
+
+
+                    /* ==========================================
+                    VALIDACIÓN DETALLADA
+                    ========================================== */
+
+                    if (!HOJA) {
+
+                        console.error(
+                            "❌ Falta configurar el parámetro HOJA"
+                        );
+
+                    }
+
+
+                    if (!COLUMNA_ID) {
+
+                        console.error(
+                            "❌ Falta configurar el parámetro COLUMNA_ID"
+                        );
+
+                    }
+
+
+                    if (
+                        HOJA &&
+                        COLUMNA_ID
+                    ) {
+
+                        console.log(
+                            "✅ Widget configurado correctamente"
+                        );
+
+                    }
 
                 }
 
             );
 
 
-            /* =====================================================
+            /* ==========================================
             ENVÍO DEL FORMULARIO
-            ===================================================== */
+            ========================================== */
 
             JFCustomWidget.subscribe(
 
@@ -457,13 +486,12 @@
 
                     JFCustomWidget.sendSubmit({
 
-                        valid:
-                        true,
+                        valid: true,
 
                         value:
-                        JSON.stringify(
-                            datosEncontrados || {}
-                        )
+                            JSON.stringify(
+                                datosEncontrados || {}
+                            )
 
                     });
 

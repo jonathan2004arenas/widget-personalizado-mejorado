@@ -503,7 +503,9 @@
                     */
 
                     const nuevoID =
-                        String(valor).trim();
+                        String(
+                            valor.value || ""
+                        ).trim();
 
 
                     console.log(

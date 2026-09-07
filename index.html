@@ -522,6 +522,20 @@
                     campoID.value =
                         nuevoID;
 
+
+                    /*
+                    ACTUALIZAR EL VALOR
+                    DEL WIDGET
+                    */
+
+                    JFCustomWidget.sendData({
+
+                        valid: true,
+
+                        value: nuevoID
+
+                    });
+
                 }
 
             );

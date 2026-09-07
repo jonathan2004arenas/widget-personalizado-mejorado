@@ -463,6 +463,89 @@
 
             );
 
+            /* =====================================================
+            RECIBIR VALOR DESDE CONDICIONALES DE JOTFORM
+            ===================================================== */
+
+            JFCustomWidget.subscribe(
+
+                "populate",
+
+                function(valor) {
+
+                    console.log(
+                        "📥 Evento POPULATE recibido:",
+                        valor
+                    );
+
+
+                    /*
+                    VALIDAR QUE EXISTA UN VALOR
+                    */
+
+                    if (
+                        valor === undefined ||
+                        valor === null ||
+                        valor === ""
+                    ) {
+
+                        console.log(
+                            "⚠️ POPULATE recibido sin valor"
+                        );
+
+                        return;
+
+                    }
+
+
+                    /*
+                    CONVERTIR A TEXTO
+                    */
+
+                    const nuevoID =
+                        String(valor).trim();
+
+
+                    console.log(
+                        "🔄 Nuevo ID recibido desde Jotform:",
+                        nuevoID
+                    );
+
+
+                    /*
+                    COLOCAR EL VALOR
+                    EN EL INPUT DEL WIDGET
+                    */
+
+                    campoID.value =
+                        nuevoID;
+
+
+                    /*
+                    ACTUALIZAR EL VALOR
+                    DEL WIDGET
+                    */
+
+                    JFCustomWidget.sendData({
+
+                        valid: true,
+
+                        value: nuevoID
+
+                    });
+
+
+                    /*
+                    EJECUTAR AUTOMÁTICAMENTE
+                    LA BÚSQUEDA
+                    */
+
+                    buscarRegistro();
+
+                }
+
+            );
+
             /* ==========================================
             ENVÍO DEL FORMULARIO
             ========================================== */

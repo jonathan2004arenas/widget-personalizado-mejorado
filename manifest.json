@@ -5,15 +5,32 @@
   "url": "https://jonathan2004arenas.github.io/widget-personalizado-mejorado/",
   "iframe": true,
   "settings": {
+    "apiUrl": {
+      "type": "text",
+      "label": "URL de la API",
+      "required": true
+    },
+
     "hoja": {
       "type": "text",
       "label": "Nombre de la hoja",
       "required": true
     },
-    "columnaID": {
+
+    "columnaId": {
       "type": "text",
       "label": "Nombre de la columna ID",
       "required": true
+    },
+
+    "autofillCondition": {
+      "type": "checkbox",
+      "label": "Autofill by condition"
+    },
+
+    "background": {
+      "type": "checkbox",
+      "label": "Run in the background"
     }
   }
 }

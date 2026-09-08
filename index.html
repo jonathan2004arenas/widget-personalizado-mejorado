@@ -17,7 +17,7 @@
 
 <body>
 
-    <div>
+    <div id="contenedorWidget">
 
         <input
             type="text"
@@ -31,7 +31,6 @@
         >
             Buscar
         </button>
-
 
         <div id="mensaje"></div>
 
@@ -48,32 +47,103 @@
         let HOJA = "";
         let COLUMNA_ID = "";
 
+        let AUTOFILL_CONDITION = false;
+        let BACKGROUND = false;
+
 
         /* =====================================================
            ELEMENTOS HTML
         ===================================================== */
 
+        const contenedorWidget =
+            document.getElementById(
+                "contenedorWidget"
+            );
+
+
         const campoID =
-        document.getElementById(
-            "idBusqueda"
-        );
+            document.getElementById(
+                "idBusqueda"
+            );
 
 
         const botonBuscar =
-        document.getElementById(
-            "btnBuscar"
-        );
+            document.getElementById(
+                "btnBuscar"
+            );
 
 
         const mensaje =
-        document.getElementById(
-            "mensaje"
-        );
-
-        
+            document.getElementById(
+                "mensaje"
+            );
 
 
         let datosEncontrados = null;
+
+
+        /* =====================================================
+           FUNCIÓN PARA CONVERTIR CHECKBOX A BOOLEAN
+        ===================================================== */
+
+        function convertirBooleano(valor) {
+
+            return (
+                valor === true ||
+                valor === "true" ||
+                valor === "yes" ||
+                valor === "1" ||
+                valor === 1
+            );
+
+        }
+
+
+        /* =====================================================
+           VALIDAR CONFIGURACIÓN
+        ===================================================== */
+
+        function validarConfiguracion() {
+
+            let configurado = true;
+
+
+            if (!API_URL) {
+
+                console.error(
+                    "❌ Falta configurar la URL de la API"
+                );
+
+                configurado = false;
+
+            }
+
+
+            if (!HOJA) {
+
+                console.error(
+                    "❌ Falta configurar el nombre de la hoja"
+                );
+
+                configurado = false;
+
+            }
+
+
+            if (!COLUMNA_ID) {
+
+                console.error(
+                    "❌ Falta configurar el nombre de la columna ID"
+                );
+
+                configurado = false;
+
+            }
+
+
+            return configurado;
+
+        }
 
 
         /* =====================================================
@@ -82,50 +152,29 @@
 
         async function buscarRegistro() {
 
-            if (!API_URL || !HOJA || !COLUMNA_ID) {
+            console.log(
+                "🔎 Iniciando búsqueda"
+            );
+
+
+            if (!validarConfiguracion()) {
 
                 mensaje.textContent =
-                    "⚠️ El widget aún no está configurado";
-
-                if (!API_URL) {
-
-                    console.error(
-                        "❌ Falta configurar API_URL"
-                    );
-
-                }
-
-
-                if (!HOJA) {
-
-                    console.error(
-                        "❌ Falta configurar HOJA"
-                    );
-
-                }
-
-
-                if (!COLUMNA_ID) {
-
-                    console.error(
-                        "❌ Falta configurar COLUMNA_ID"
-                    );
-
-                }
+                    "⚠️ El widget aún no está configurado correctamente";
 
                 return;
 
-
             }
 
+
             const id =
-            campoID.value.trim();
+                campoID.value.trim();
 
 
             if (!id) {
 
                 mensaje.textContent =
-                "Ingrese un ID";
+                    "Ingrese un ID";
 
                 return;
 
@@ -133,7 +182,7 @@
 
 
             mensaje.textContent =
-            "⏳ Buscando...";
+                "⏳ Buscando...";
 
 
             try {
@@ -155,11 +204,11 @@
 
 
                 const respuesta =
-                await fetch(url);
+                    await fetch(url);
 
 
                 const resultado =
-                await respuesta.json();
+                    await respuesta.json();
 
 
                 console.log(
@@ -172,15 +221,15 @@
                    REGISTRO NO ENCONTRADO
                 ============================================= */
 
-                if (
-                    !resultado.encontrado
-                ) {
+                if (!resultado.encontrado) {
 
                     mensaje.textContent =
-                    "❌ Registro no encontrado";
+                        "❌ Registro no encontrado";
+
 
                     datosEncontrados =
-                    null;
+                        null;
+
 
                     return;
 
@@ -192,11 +241,11 @@
                 ============================================= */
 
                 datosEncontrados =
-                resultado.datos;
+                    resultado.datos;
 
 
                 mensaje.textContent =
-                "✅ Registro encontrado";
+                    "✅ Registro encontrado";
 
 
                 console.log(
@@ -206,8 +255,7 @@
 
 
                 /* =============================================
-                   CREAR AUTOMÁTICAMENTE LOS CAMPOS
-                   PARA ENVIAR A JOTFORM
+                   CREAR CAMPOS PARA JOTFORM
                 ============================================= */
 
                 const camposJotform = [];
@@ -221,19 +269,13 @@
                         [nombreCampo, valor]
                     ) {
 
-                        /*
-                        Cada encabezado de Google Sheets
-                        se convierte automáticamente
-                        en un campo de Jotform.
-                        */
-
                         camposJotform.push({
 
                             label:
-                            nombreCampo,
+                                nombreCampo,
 
                             value:
-                            valor || ""
+                                valor || ""
 
                         });
 
@@ -249,7 +291,7 @@
 
 
                 /* =============================================
-                   ENVIAR TODOS LOS CAMPOS A JOTFORM
+                   ENVIAR DATOS A JOTFORM
                 ============================================= */
 
                 if (
@@ -262,17 +304,11 @@
                     );
 
 
-                    /*
-                    Guardar ID como valor del Widget
-                    */
-
                     JFCustomWidget.sendData({
 
-                        valid:
-                        true,
+                        valid: true,
 
-                        value:
-                        id
+                        value: id
 
                     });
 
@@ -287,13 +323,13 @@
             } catch (error) {
 
                 console.error(
-                    "❌ Error:",
+                    "❌ Error completo:",
                     error
                 );
 
 
                 mensaje.textContent =
-                "❌ Error consultando la base de datos";
+                    "❌ Error consultando la base de datos";
 
             }
 
@@ -301,7 +337,7 @@
 
 
         /* =====================================================
-           EVENTOS
+           EVENTO BOTÓN BUSCAR
         ===================================================== */
 
         botonBuscar.addEventListener(
@@ -317,6 +353,10 @@
         );
 
 
+        /* =====================================================
+           EVENTO ENTER
+        ===================================================== */
+
         campoID.addEventListener(
 
             "keydown",
@@ -324,8 +364,7 @@
             function(event) {
 
                 if (
-                    event.key ===
-                    "Enter"
+                    event.key === "Enter"
                 ) {
 
                     event.preventDefault();
@@ -339,13 +378,23 @@
         );
 
 
+        /* =====================================================
+           EVENTO BLUR
+        ===================================================== */
+
         campoID.addEventListener(
 
             "blur",
 
             function() {
 
+                /*
+                Solo buscamos automáticamente
+                si NO está activo Autofill by condition.
+                */
+
                 if (
+                    !AUTOFILL_CONDITION &&
                     campoID.value.trim() !== ""
                 ) {
 
@@ -358,14 +407,19 @@
         );
 
 
-        /*/* =====================================================
-        CONEXIÓN CON JOTFORM
+        /* =====================================================
+           CONEXIÓN CON JOTFORM
         ===================================================== */
 
         if (
             typeof JFCustomWidget !==
             "undefined"
         ) {
+
+
+            /* =================================================
+               READY
+            ================================================= */
 
             JFCustomWidget.subscribe(
 
@@ -379,111 +433,92 @@
 
 
                     /* ==========================================
-                    OBTENER CONFIGURACIÓN
+                       LEER CONFIGURACIÓN INDIVIDUAL
                     ========================================== */
 
-                    const configuracion =
+                    API_URL =
                         JFCustomWidget.getWidgetSetting(
-                            "CONFIGURACION"
+                            "apiUrl"
                         ) || "";
 
 
+                    HOJA =
+                        JFCustomWidget.getWidgetSetting(
+                            "hoja"
+                        ) || "";
+
+
+                    COLUMNA_ID =
+                        JFCustomWidget.getWidgetSetting(
+                            "columnaId"
+                        ) || "";
+
+
+                    AUTOFILL_CONDITION =
+                        convertirBooleano(
+
+                            JFCustomWidget.getWidgetSetting(
+                                "autofillCondition"
+                            )
+
+                        );
+
+
+                    BACKGROUND =
+                        convertirBooleano(
+
+                            JFCustomWidget.getWidgetSetting(
+                                "background"
+                            )
+
+                        );
+
+
+                    /* ==========================================
+                       LOG DE CONFIGURACIÓN
+                    ========================================== */
+
                     console.log(
-                        "⚙️ CONFIGURACIÓN RECIBIDA:",
-                        configuracion
+                        "⚙️ CONFIGURACIÓN DEL WIDGET"
                     );
 
 
-                    /* ==========================================
-                    VALIDAR CONFIGURACIÓN
-                    ========================================== */
-
-                    if (!configuracion) {
-
-                        console.error(
-                            "❌ Falta configurar CONFIGURACION"
-                        );
-
-                        return;
-
-                    }
-
-
-                    /* ==========================================
-                    SEPARAR HOJA Y COLUMNA
-                    ========================================== */
-
-                    const partes =
-                        configuracion
-                            .split("|")
-                            .map(
-                                valor => valor.trim()
-                            );
-
-
-                    API_URL =
-                        partes[0] || "";
-
-                    HOJA =
-                        partes[1] || "";    
-
-                    COLUMNA_ID =
-                        partes[2] || "";
-
-
                     console.log(
-                        "API_URL FINAL:",
+                        "🌐 API_URL:",
                         API_URL
                     );
 
 
                     console.log(
-                        "📄 HOJA FINAL:",
+                        "📄 HOJA:",
                         HOJA
                     );
 
 
                     console.log(
-                        "🔑 COLUMNA_ID FINAL:",
+                        "🔑 COLUMNA_ID:",
                         COLUMNA_ID
                     );
 
 
+                    console.log(
+                        "🔄 AUTOFILL_CONDITION:",
+                        AUTOFILL_CONDITION
+                    );
+
+
+                    console.log(
+                        "👻 BACKGROUND:",
+                        BACKGROUND
+                    );
+
+
                     /* ==========================================
-                    VALIDACIÓN
+                       VALIDAR CONFIGURACIÓN
                     ========================================== */
 
-                    if (!API_URL) {
-
-                        console.error(
-                            "❌ Falta configurar la URL de la api"
-                        );
-
-                    }
-                    
-                    
-                    if (!HOJA) {
-
-                        console.error(
-                            "❌ Falta el nombre de la hoja"
-                        );
-
-                    }
-
-
-                    if (!COLUMNA_ID) {
-
-                        console.error(
-                            "❌ Falta el nombre de la columna ID"
-                        );
-
-                    }
-
-
                     if (
-                        API_URL &&
-                        HOJA &&
-                        COLUMNA_ID
+                        validarConfiguracion()
                     ) {
 
                         console.log(
@@ -492,13 +527,32 @@
 
                     }
 
+
+                    /* ==========================================
+                       MODO BACKGROUND
+                    ========================================== */
+
+                    if (BACKGROUND) {
+
+                        console.log(
+                            "👻 Widget ejecutándose en segundo plano"
+                        );
+
+
+                        contenedorWidget.style.display =
+                            "none";
+
+                    }
+
                 }
 
             );
 
-            /* =====================================================
-            RECIBIR VALOR DESDE CONDICIONALES DE JOTFORM
-            ===================================================== */
+
+            /* =================================================
+               POPULATE
+               RECIBIR VALOR DESDE JOTFORM
+            ================================================= */
 
             JFCustomWidget.subscribe(
 
@@ -512,14 +566,9 @@
                     );
 
 
-                    /*
-                    VALIDAR QUE EXISTA UN VALOR
-                    */
-
                     if (
                         valor === undefined ||
-                        valor === null ||
-                        valor === ""
+                        valor === null
                     ) {
 
                         console.log(
@@ -532,7 +581,8 @@
 
 
                     /*
-                    CONVERTIR A TEXTO
+                    Obtener el valor correctamente.
+                    Jotform normalmente envía un objeto.
                     */
 
                     const nuevoID =
@@ -542,24 +592,29 @@
 
 
                     console.log(
-                        "🔄 Nuevo ID recibido desde Jotform:",
+                        "🔄 Nuevo ID recibido:",
                         nuevoID
                     );
 
 
-                    /*
-                    COLOCAR EL VALOR
-                    EN EL INPUT DEL WIDGET
-                    */
+                    if (!nuevoID) {
+
+                        return;
+
+                    }
+
+
+                    /* ==========================================
+                       COLOCAR ID EN EL INPUT
+                    ========================================== */
 
                     campoID.value =
                         nuevoID;
 
 
-                    /*
-                    ACTUALIZAR EL VALOR
-                    DEL WIDGET
-                    */
+                    /* ==========================================
+                       ACTUALIZAR VALOR DEL WIDGET
+                    ========================================== */
 
                     JFCustomWidget.sendData({
 
@@ -569,13 +624,32 @@
 
                     });
 
+
+                    /* ==========================================
+                       AUTOFILL BY CONDITION
+                    ========================================== */
+
+                    if (
+                        AUTOFILL_CONDITION
+                    ) {
+
+                        console.log(
+                            "🔄 Autofill by condition activado"
+                        );
+
+
+                        buscarRegistro();
+
+                    }
+
                 }
 
             );
 
-            /* ==========================================
-            ENVÍO DEL FORMULARIO
-            ========================================== */
+
+            /* =================================================
+               SUBMIT
+            ================================================= */
 
             JFCustomWidget.subscribe(
 

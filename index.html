@@ -83,6 +83,14 @@
 
         let datosEncontrados = null;
 
+        /* CONTROL DE BÚSQUEDA */
+
+        let ultimoIDBuscado = "";
+
+        let buscando = false;
+
+        let busquedaAutomaticaPendiente = false;
+
 
         /* =====================================================
            BUSCAR REGISTRO
@@ -104,26 +112,64 @@
             }
 
             const id =
-            campoID.value.trim();
+                campoID.value.trim();
 
-
-            if (!id) {
-
+                
+                
+                if (!id) {
+                    
+                    mensaje.textContent =
+                    "Ingrese un ID";
+                    
+                    return;
+                    
+                }
+                
+                /*
+                EVITAR BUSCAR EL MISMO ID
+                VARIAS VECES
+                */
+    
+                if (
+                    id === ultimoIDBuscado &&
+                    !busquedaAutomaticaPendiente
+                ) {
+    
+                    console.log(
+                        "⏭️ Este ID ya fue buscado:",
+                        id
+                    );
+    
+                    return;
+    
+                }
+    
+    
+                /*
+                EVITAR DOS BÚSQUEDAS
+                AL MISMO TIEMPO
+                */
+    
+                if (buscando) {
+    
+                    console.log(
+                        "⏳ Ya hay una búsqueda en proceso"
+                    );
+    
+                    return;
+    
+                }
+    
+    
+                buscando = true;
+                
                 mensaje.textContent =
-                "Ingrese un ID";
-
-                return;
-
-            }
-
-
-            mensaje.textContent =
-            "⏳ Buscando...";
-
-
-            try {
-
-                const url =
+                "⏳ Buscando...";
+                
+                
+                try {
+                    
+                    const url =
                     API_URL +
                     "?hoja=" +
                     encodeURIComponent(HOJA) +
@@ -177,7 +223,11 @@
                 ============================================= */
 
                 datosEncontrados =
-                resultado.datos;
+                    resultado.datos;
+
+                ultimoIDBuscado = id;
+
+                busquedaAutomaticaPendiente = false;
 
 
                 mensaje.textContent =
@@ -280,9 +330,13 @@
                 mensaje.textContent =
                 "❌ Error consultando la base de datos";
 
-            }
+            } finally {
+
+                buscando = false;
 
         }
+    
+    }
 
 
         /* =====================================================
@@ -330,11 +384,48 @@
 
             function() {
 
+                const idActual =
+                    campoID.value.trim();
+
+
+                /*
+                SI NO HAY VALOR,
+                NO HACER NADA
+                */
+
+                if (!idActual) {
+
+                    return;
+
+                }
+
+
+                /*
+                SOLO BUSCAR SI EL VALOR
+                ES DIFERENTE AL ÚLTIMO
+                */
+
                 if (
-                    campoID.value.trim() !== ""
+                    idActual !==
+                    ultimoIDBuscado
                 ) {
 
+                    console.log(
+                        "🔄 Valor cambiado, buscando:",
+                        idActual
+                    );
+
+                    busquedaAutomaticaPendiente =
+                        true;
+
+
                     buscarRegistro();
+
+                } else {
+
+                    console.log(
+                        "⏭️ El valor no cambió, no se busca nuevamente"
+                    );
 
                 }
 
@@ -522,6 +613,20 @@
                     campoID.value =
                         nuevoID;
 
+                    /*
+                    MARCAR QUE HAY UN NUEVO
+                    VALOR PENDIENTE DE BÚSQUEDA
+                    */
+
+                    if (
+                        nuevoID !== ultimoIDBuscado
+                    ) {
+
+                        busquedaAutomaticaPendiente =
+                            true;
+
+                    }
+
 
                     /*
                     ACTUALIZAR EL VALOR
@@ -535,12 +640,6 @@
                         value: nuevoID
 
                     });
-
-                    /*
-                    BUSCAR AUTOMÁTICAMENTE
-                    */
-
-                    buscarRegistro();
 
                 }
 

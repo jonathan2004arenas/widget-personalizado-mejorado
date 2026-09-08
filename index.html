@@ -44,17 +44,7 @@
            CONFIGURACIÓN
         ===================================================== */
 
-        const API_URL =
-        "https://script.google.com/macros/s/AKfycbyKcUWjVBA4n_frrsGQy5JEm-SL26cWmG3FBfMgoIVXudayJamM30hcIdh0KdxuJu5LDQ/exec";
-
-
-        /*
-        CONFIGURACIÓN TEMPORAL PARA LA PRUEBA
-
-        Después vamos a hacer que estos valores
-        sean configurables desde Jotform.
-        */
-
+        let API_URL = "";
         let HOJA = "";
         let COLUMNA_ID = "";
 
@@ -80,6 +70,8 @@
             "mensaje"
         );
 
+        
+
 
         let datosEncontrados = null;
 
@@ -90,16 +82,39 @@
 
         async function buscarRegistro() {
 
-            if (!HOJA || !COLUMNA_ID) {
+            if (!API_URL || !HOJA || !COLUMNA_ID) {
 
                 mensaje.textContent =
                     "⚠️ El widget aún no está configurado";
 
-                console.error(
-                    "Falta configurar HOJA o COLUMNA_ID"
-                );
+                if (!API_URL) {
+
+                    console.error(
+                        "❌ Falta configurar API_URL"
+                    );
+
+                }
+
+
+                if (!HOJA) {
+
+                    console.error(
+                        "❌ Falta configurar HOJA"
+                    );
+
+                }
+
+
+                if (!COLUMNA_ID) {
+
+                    console.error(
+                        "❌ Falta configurar COLUMNA_ID"
+                    );
+
+                }
 
                 return;
+
 
             }
 
@@ -406,12 +421,20 @@
                             );
 
 
-                    HOJA =
+                    API_URL =
                         partes[0] || "";
 
+                    HOJA =
+                        partes[1] || "";    
 
                     COLUMNA_ID =
-                        partes[1] || "";
+                        partes[2] || "";
+
+
+                    console.log(
+                        "API_URL FINAL:",
+                        API_URL
+                    );
 
 
                     console.log(
@@ -430,6 +453,15 @@
                     VALIDACIÓN
                     ========================================== */
 
+                    if (!API_URL) {
+
+                        console.error(
+                            "❌ Falta configurar la URL de la api"
+                        );
+
+                    }
+                    
+                    
                     if (!HOJA) {
 
                         console.error(
@@ -449,6 +481,7 @@
 
 
                     if (
+                        API_URL &&
                         HOJA &&
                         COLUMNA_ID
                     ) {

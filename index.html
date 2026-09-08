@@ -82,11 +82,6 @@
 
 
         let datosEncontrados = null;
-        let ultimoIDBuscado = "";
-
-        let buscando = false;
-
-        let busquedaAutomaticaPendiente = false;
 
 
         /* =====================================================
@@ -526,20 +521,6 @@
 
                     campoID.value =
                         nuevoID;
-
-                    /*
-                    MARCAR QUE HAY UN NUEVO
-                    VALOR PENDIENTE DE BÚSQUEDA
-                    */
-
-                    if (
-                        nuevoID !== ultimoIDBuscado
-                    ) {
-
-                        busquedaAutomaticaPendiente =
-                            true;
-
-                    }
 
 
                     /*

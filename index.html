@@ -88,13 +88,66 @@
 
         function convertirBooleano(valor) {
 
-            return (
-                valor === true ||
-                valor === "true" ||
-                valor === "yes" ||
-                valor === "1" ||
-                valor === 1
+            console.log(
+                "🔍 Valor recibido para convertir a booleano:",
+                valor,
+                "Tipo:",
+                typeof valor
             );
+
+            /*
+            Si Jotform devuelve un objeto,
+            intentamos obtener su valor.
+            */
+
+            if (
+                valor !== null &&
+                typeof valor === "object"
+            ) {
+
+                valor =
+                    valor.value ??
+                    valor.label ??
+                    "";
+
+            }
+
+
+            /*
+            Convertimos a texto
+            */
+
+            const texto =
+                String(valor)
+                    .trim()
+                    .toUpperCase();
+
+
+            console.log(
+                "🔄 Valor normalizado:",
+                texto
+            );
+
+
+            /*
+            SI = true
+            NO = false
+            */
+
+            if (
+                texto === "SI" ||
+                texto === "SÍ" ||
+                texto === "TRUE" ||
+                texto === "YES" ||
+                texto === "1"
+            ) {
+
+                return true;
+
+            }
+
+
+            return false;
 
         }
 

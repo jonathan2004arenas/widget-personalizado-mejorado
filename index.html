@@ -52,6 +52,47 @@
 
 
         /* =====================================================
+           CONTROL DE BÚSQUEDAS AUTOMÁTICAS
+        ===================================================== */
+
+        /*
+        Guarda el último ID que fue procesado
+        por Autofill By Condition.
+        */
+
+        let ultimoIDProcesado = "";
+
+
+        /*
+        Guarda el ID que actualmente se está buscando.
+        */
+
+        let idBusquedaActual = "";
+
+
+        /*
+        Controla las búsquedas que están ejecutándose.
+        */
+
+        let busquedaEnCurso = false;
+
+
+        /*
+        Permite cancelar una petición fetch anterior.
+        */
+
+        let controladorBusqueda = null;
+
+
+        /*
+        Número de búsqueda.
+        Sirve para detectar respuestas antiguas.
+        */
+
+        let numeroBusqueda = 0;
+
+
+        /* =====================================================
            ELEMENTOS HTML
         ===================================================== */
 
@@ -83,7 +124,7 @@
 
 
         /* =====================================================
-           FUNCIÓN PARA CONVERTIR CHECKBOX A BOOLEAN
+           CONVERTIR SI / NO A BOOLEAN
         ===================================================== */
 
         function convertirBooleano(valor) {
@@ -94,6 +135,7 @@
                 "Tipo:",
                 typeof valor
             );
+
 
             /*
             Si Jotform devuelve un objeto,
@@ -113,10 +155,6 @@
             }
 
 
-            /*
-            Convertimos a texto
-            */
-
             const texto =
                 String(valor)
                     .trim()
@@ -129,15 +167,9 @@
             );
 
 
-            /*
-            SI = true
-            NO = false
-            */
-
             if (
                 texto === "SI" ||
                 texto === "SÍ" ||
-                texto === "Si" ||
                 texto === "TRUE" ||
                 texto === "YES" ||
                 texto === "1"
@@ -201,10 +233,107 @@
 
 
         /* =====================================================
+           EXTRAER ID DE POPULATE
+        ===================================================== */
+
+        function obtenerIDDePopulate(valor) {
+
+            if (
+                valor === undefined ||
+                valor === null
+            ) {
+
+                return "";
+
+            }
+
+
+            let valorExtraido = "";
+
+
+            /*
+            Caso normal:
+            { type: "widgetpopulate", value: "EQ-1" }
+            */
+
+            if (
+                typeof valor === "object"
+            ) {
+
+                valorExtraido =
+                    valor.value ??
+                    valor.label ??
+                    "";
+
+            }
+            else {
+
+                valorExtraido = valor;
+
+            }
+
+
+            /*
+            Si nuevamente viene como objeto,
+            intentamos extraer su value.
+            */
+
+            if (
+                valorExtraido !== null &&
+                typeof valorExtraido === "object"
+            ) {
+
+                valorExtraido =
+                    valorExtraido.value ??
+                    valorExtraido.label ??
+                    "";
+
+            }
+
+
+            return String(
+                valorExtraido || ""
+            ).trim();
+
+        }
+
+
+        /* =====================================================
+           CANCELAR BÚSQUEDA ANTERIOR
+        ===================================================== */
+
+        function cancelarBusquedaAnterior() {
+
+            if (
+                controladorBusqueda
+            ) {
+
+                console.log(
+                    "🛑 Cancelando búsqueda anterior"
+                );
+
+
+                controladorBusqueda.abort();
+
+
+                controladorBusqueda = null;
+
+            }
+
+
+            busquedaEnCurso = false;
+
+        }
+
+
+        /* =====================================================
            BUSCAR REGISTRO
         ===================================================== */
 
-        async function buscarRegistro() {
+        async function buscarRegistro(
+            idForzado = null,
+            esBusquedaAutomatica = false
+        ) {
 
             console.log(
                 "🔎 Iniciando búsqueda"
@@ -221,8 +350,17 @@
             }
 
 
+            /*
+            Obtener ID.
+
+            Si viene desde populate usamos idForzado.
+            Si es búsqueda manual usamos el input.
+            */
+
             const id =
-                campoID.value.trim();
+                idForzado !== null
+                    ? String(idForzado).trim()
+                    : campoID.value.trim();
 
 
             if (!id) {
@@ -233,6 +371,105 @@
                 return;
 
             }
+
+
+            /* =================================================
+               CONTROL DE BÚSQUEDA AUTOMÁTICA
+            ================================================= */
+
+            if (
+                esBusquedaAutomatica
+            ) {
+
+                /*
+                Si Jotform manda exactamente
+                el mismo ID que ya procesamos,
+                NO hacemos otra búsqueda.
+                */
+
+                if (
+                    ultimoIDProcesado === id
+                ) {
+
+                    console.log(
+                        "⏭️ ID ya procesado. No se realizará otra búsqueda:",
+                        id
+                    );
+
+                    return;
+
+                }
+
+
+                /*
+                Si ya hay una búsqueda para otro ID,
+                la cancelamos.
+                */
+
+                if (
+                    busquedaEnCurso &&
+                    idBusquedaActual !== id
+                ) {
+
+                    console.log(
+                        "🔄 Cambió el ID:",
+                        idBusquedaActual,
+                        "→",
+                        id
+                    );
+
+
+                    cancelarBusquedaAnterior();
+
+                }
+
+
+                /*
+                Si exactamente este ID ya está
+                siendo buscado, no duplicamos la petición.
+                */
+
+                if (
+                    busquedaEnCurso &&
+                    idBusquedaActual === id
+                ) {
+
+                    console.log(
+                        "⏭️ Esta búsqueda ya está en curso:",
+                        id
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            /* =================================================
+               PREPARAR NUEVA BÚSQUEDA
+            ================================================= */
+
+            busquedaEnCurso = true;
+
+            idBusquedaActual = id;
+
+            numeroBusqueda++;
+
+            const numeroBusquedaActual =
+                numeroBusqueda;
+
+
+            /*
+            Creamos un nuevo AbortController.
+            */
+
+            controladorBusqueda =
+                new AbortController();
+
+
+            const signal =
+                controladorBusqueda.signal;
 
 
             mensaje.textContent =
@@ -258,7 +495,12 @@
 
 
                 const respuesta =
-                    await fetch(url);
+                    await fetch(
+                        url,
+                        {
+                            signal: signal
+                        }
+                    );
 
 
                 const resultado =
@@ -271,11 +513,51 @@
                 );
 
 
-                /* =============================================
-                   REGISTRO NO ENCONTRADO
-                ============================================= */
+                /* =================================================
+                   VERIFICAR SI ESTA RESPUESTA SIGUE SIENDO VÁLIDA
+                ================================================= */
 
-                if (!resultado.encontrado) {
+                /*
+                Si mientras esperábamos llegó otro ID,
+                esta respuesta ya no debe modificar Jotform.
+                */
+
+                if (
+                    numeroBusquedaActual !== numeroBusqueda
+                ) {
+
+                    console.log(
+                        "⚠️ Respuesta antigua ignorada:",
+                        id
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    id !== campoID.value.trim()
+                ) {
+
+                    console.log(
+                        "⚠️ El ID cambió mientras se realizaba la búsqueda.",
+                        "Respuesta ignorada:",
+                        id
+                    );
+
+                    return;
+
+                }
+
+
+                /* =================================================
+                   REGISTRO NO ENCONTRADO
+                ================================================= */
+
+                if (
+                    !resultado.encontrado
+                ) {
 
                     mensaje.textContent =
                         "❌ Registro no encontrado";
@@ -285,14 +567,32 @@
                         null;
 
 
+                    /*
+                    Marcamos este ID como procesado
+                    incluso si no fue encontrado.
+
+                    Así Jotform no intentará buscarlo
+                    infinitamente.
+                    */
+
+                    if (
+                        esBusquedaAutomatica
+                    ) {
+
+                        ultimoIDProcesado =
+                            id;
+
+                    }
+
+
                     return;
 
                 }
 
 
-                /* =============================================
+                /* =================================================
                    REGISTRO ENCONTRADO
-                ============================================= */
+                ================================================= */
 
                 datosEncontrados =
                     resultado.datos;
@@ -308,9 +608,29 @@
                 );
 
 
-                /* =============================================
+                /* =================================================
+                   MARCAR ID COMO PROCESADO
+                ================================================= */
+
+                if (
+                    esBusquedaAutomatica
+                ) {
+
+                    ultimoIDProcesado =
+                        id;
+
+
+                    console.log(
+                        "✅ ID marcado como procesado:",
+                        ultimoIDProcesado
+                    );
+
+                }
+
+
+                /* =================================================
                    CREAR CAMPOS PARA JOTFORM
-                ============================================= */
+                ================================================= */
 
                 const camposJotform = [];
 
@@ -344,9 +664,9 @@
                 );
 
 
-                /* =============================================
+                /* =================================================
                    ENVIAR DATOS A JOTFORM
-                ============================================= */
+                ================================================= */
 
                 if (
                     typeof JFCustomWidget !==
@@ -374,7 +694,30 @@
                 }
 
 
-            } catch (error) {
+            }
+            catch (error) {
+
+                /*
+                AbortError significa que nosotros
+                cancelamos la búsqueda porque llegó
+                un ID nuevo.
+
+                No lo mostramos como error.
+                */
+
+                if (
+                    error.name === "AbortError"
+                ) {
+
+                    console.log(
+                        "🛑 Búsqueda cancelada:",
+                        id
+                    );
+
+                    return;
+
+                }
+
 
                 console.error(
                     "❌ Error completo:",
@@ -386,6 +729,28 @@
                     "❌ Error consultando la base de datos";
 
             }
+            finally {
+
+                /*
+                Solo limpiamos el estado si esta
+                sigue siendo la búsqueda actual.
+                */
+
+                if (
+                    numeroBusquedaActual === numeroBusqueda
+                ) {
+
+                    busquedaEnCurso = false;
+
+                    controladorBusqueda =
+                        null;
+
+                    idBusquedaActual =
+                        "";
+
+                }
+
+            }
 
         }
 
@@ -394,17 +759,25 @@
            EVENTO BOTÓN BUSCAR
         ===================================================== */
 
-        // botonBuscar.addEventListener(
+        botonBuscar.addEventListener(
 
-        //     "click",
+            "click",
 
-        //     function() {
+            function() {
 
-        //         buscarRegistro();
+                /*
+                La búsqueda manual NO usa
+                la protección de Autofill.
+                */
 
-        //     }
+                buscarRegistro(
+                    null,
+                    false
+                );
 
-        // );
+            }
+
+        );
 
 
         /* =====================================================
@@ -423,7 +796,11 @@
 
                     event.preventDefault();
 
-                    buscarRegistro();
+
+                    buscarRegistro(
+                        null,
+                        false
+                    );
 
                 }
 
@@ -436,32 +813,43 @@
            EVENTO BLUR
         ===================================================== */
 
-        // campoID.addEventListener(
+        campoID.addEventListener(
 
-        //     "blur",
+            "blur",
 
-        //     function() {
+            function() {
 
-        //         if (
-        //             AUTOFILL_CONDITION
-        //         ) {
+                /*
+                Si Autofill está activado,
+                NO buscamos mediante blur.
 
-        //             return;
+                La búsqueda será controlada
+                exclusivamente por POPULATE.
+                */
 
-        //         }
+                if (
+                    AUTOFILL_CONDITION
+                ) {
+
+                    return;
+
+                }
 
 
-        //         if (
-        //             campoID.value.trim() !== ""
-        //         ) {
+                if (
+                    campoID.value.trim() !== ""
+                ) {
 
-        //             buscarRegistro();
+                    buscarRegistro(
+                        null,
+                        false
+                    );
 
-        //         }
+                }
 
-        //     }
+            }
 
-        // );
+        );
 
 
         /* =====================================================
@@ -490,7 +878,7 @@
 
 
                     /* ==========================================
-                       LEER CONFIGURACIÓN INDIVIDUAL
+                       LEER CONFIGURACIÓN
                     ========================================== */
 
                     API_URL =
@@ -522,6 +910,7 @@
                             "background"
                         );
 
+
                     console.log(
                         "📥 VALOR RAW AUTOFILL:",
                         valorAutofill
@@ -535,7 +924,7 @@
 
 
                     /* ==========================================
-                    CONVERTIR A BOOLEAN
+                       CONVERTIR BOOLEAN
                     ========================================== */
 
                     AUTOFILL_CONDITION =
@@ -563,7 +952,7 @@
 
 
                     /* ==========================================
-                       LOG DE CONFIGURACIÓN
+                       CONFIGURACIÓN
                     ========================================== */
 
                     console.log(
@@ -617,7 +1006,7 @@
 
 
                     /* ==========================================
-                       MODO BACKGROUND
+                       BACKGROUND
                     ========================================== */
 
                     if (
@@ -628,6 +1017,7 @@
                         console.log(
                             "👻 Widget ejecutándose en segundo plano"
                         );
+
 
                         contenedorWidget.style.display =
                             "none";
@@ -648,7 +1038,6 @@
 
             /* =================================================
                POPULATE
-               RECIBIR VALOR DESDE JOTFORM
             ================================================= */
 
             JFCustomWidget.subscribe(
@@ -663,29 +1052,14 @@
                     );
 
 
-                    if (
-                        valor === undefined ||
-                        valor === null
-                    ) {
-
-                        console.log(
-                            "⚠️ POPULATE recibido sin valor"
-                        );
-
-                        return;
-
-                    }
-
-
                     /*
-                    Obtener el valor correctamente.
-                    Jotform normalmente envía un objeto.
+                    Obtener correctamente el ID.
                     */
 
                     const nuevoID =
-                        String(
-                            valor.value || ""
-                        ).trim();
+                        obtenerIDDePopulate(
+                            valor
+                        );
 
 
                     console.log(
@@ -696,13 +1070,17 @@
 
                     if (!nuevoID) {
 
+                        console.log(
+                            "⚠️ POPULATE recibido sin ID"
+                        );
+
                         return;
 
                     }
 
 
                     /* ==========================================
-                       COLOCAR ID EN EL INPUT
+                       ACTUALIZAR INPUT
                     ========================================== */
 
                     campoID.value =
@@ -710,34 +1088,34 @@
 
 
                     /* ==========================================
-                       ACTUALIZAR VALOR DEL WIDGET
-                    ========================================== */
-
-                    JFCustomWidget.sendData({
-
-                        valid: true,
-
-                        value: nuevoID
-
-                    });
-
-
-                    /* ==========================================
                        AUTOFILL BY CONDITION
                     ========================================== */
 
-                    // if (
-                    //     AUTOFILL_CONDITION
-                    // ) {
+                    if (
+                        AUTOFILL_CONDITION
+                    ) {
 
-                    //     console.log(
-                    //         "🔄 Autofill by condition activado"
-                    //     );
+                        console.log(
+                            "🔄 Autofill by condition activado"
+                        );
 
 
-                    //     buscarRegistro();
+                        /*
+                        La función se encarga de:
 
-                    // }
+                        - evitar duplicados
+                        - cancelar búsquedas anteriores
+                        - ignorar respuestas antiguas
+                        - buscar solamente una vez
+                        */
+
+                        buscarRegistro(
+                            nuevoID,
+                            true
+                        );
+
+                    }
+
 
                 }
 

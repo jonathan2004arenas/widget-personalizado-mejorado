@@ -1018,20 +1018,73 @@
                             "👻 Widget ejecutándose en segundo plano"
                         );
 
+                        /*
+                            Ocultamos el contenedor completo
+                            del widget dentro de Jotform.
 
-                        contenedorWidget.style.display =
-                            "none";
+                            Esto es diferente de ocultar solamente
+                            nuestro HTML interno.
+                            */
+
+                            if (
+                                typeof JFCustomWidget.hideWidgetContainer ===
+                                "function"
+                            ) {
+
+                                console.log(
+                                    "🙈 Ocultando contenedor completo del widget"
+                                );
+
+
+                                JFCustomWidget.hideWidgetContainer();
+
+                            }
+                            else {
+
+                                /*
+                                Fallback por si Jotform no expone
+                                este método en alguna versión.
+                                */
+
+                                console.warn(
+                                    "⚠️ hideWidgetContainer no está disponible"
+                                );
+
+
+                                contenedorWidget.style.display =
+                                    "none";
+
+
+                                /*
+                                Intentamos reducir también
+                                el tamaño del iframe.
+                                */
+
+                                if (
+                                    typeof JFCustomWidget.requestFrameResize ===
+                                    "function"
+                                ) {
+
+                                    JFCustomWidget.requestFrameResize({
+
+                                        height: 0
+
+                                    });
+
+                                }
+
+                            }
+
+                        }
+                        else {
+
+                            console.log(
+                                "👁️ Widget visible"
+                            );
+
+                        }
 
                     }
-                    else {
-
-                        console.log(
-                            "👁️ Widget visible"
-                        );
-
-                    }
-
-                }
 
             );
 

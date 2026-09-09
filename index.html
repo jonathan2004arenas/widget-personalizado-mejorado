@@ -442,13 +442,16 @@
 
             function() {
 
-                /*
-                Solo buscamos automáticamente
-                si NO está activo Autofill by condition.
-                */
+                if (
+                    AUTOFILL_CONDITION
+                ) {
+
+                    return;
+
+                }
+
 
                 if (
-                    !AUTOFILL_CONDITION &&
                     campoID.value.trim() !== ""
                 ) {
 
@@ -508,24 +511,55 @@
                         ) || "";
 
 
+                    const valorAutofill =
+                        JFCustomWidget.getWidgetSetting(
+                            "autofillCondition"
+                        );
+
+
+                    const valorBackground =
+                        JFCustomWidget.getWidgetSetting(
+                            "background"
+                        );
+
+                    console.log(
+                        "📥 VALOR RAW AUTOFILL:",
+                        valorAutofill
+                    );
+
+
+                    console.log(
+                        "📥 VALOR RAW BACKGROUND:",
+                        valorBackground
+                    );
+
+
+                    /* ==========================================
+                    CONVERTIR A BOOLEAN
+                    ========================================== */
+
                     AUTOFILL_CONDITION =
                         convertirBooleano(
-
-                            JFCustomWidget.getWidgetSetting(
-                                "autofillCondition"
-                            )
-
+                            valorAutofill
                         );
 
 
                     BACKGROUND =
                         convertirBooleano(
-
-                            JFCustomWidget.getWidgetSetting(
-                                "background"
-                            )
-
+                            valorBackground
                         );
+
+
+                    console.log(
+                        "🔄 AUTOFILL_CONDITION:",
+                        AUTOFILL_CONDITION
+                    );
+
+
+                    console.log(
+                        "👻 BACKGROUND:",
+                        BACKGROUND
+                    );
 
 
                     /* ==========================================
@@ -586,15 +620,24 @@
                        MODO BACKGROUND
                     ========================================== */
 
-                    if (BACKGROUND) {
+                    if (
+                        BACKGROUND &&
+                        AUTOFILL_CONDITION
+                    ) {
 
                         console.log(
                             "👻 Widget ejecutándose en segundo plano"
                         );
 
-
                         contenedorWidget.style.display =
                             "none";
+
+                    }
+                    else {
+
+                        console.log(
+                            "👁️ Widget visible"
+                        );
 
                     }
 

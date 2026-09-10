@@ -46,6 +46,7 @@
         let API_URL = "";
         let HOJA = "";
         let COLUMNA_ID = "";
+        let SPREADSHEET_ID = "";
 
         let AUTOFILL_CONDITION = false;
         let BACKGROUND = false;
@@ -198,6 +199,16 @@
 
                 console.error(
                     "❌ Falta configurar la URL de la API"
+                );
+
+                configurado = false;
+
+            }
+
+            if (!SPREADSHEET_ID) {
+
+                console.error(
+                    "❌ Falta configurar el ID del Google Spreadsheet"
                 );
 
                 configurado = false;
@@ -480,7 +491,9 @@
 
                 const url =
                     API_URL +
-                    "?hoja=" +
+                    "?spreadsheetId=" +
+                    encodeURIComponent(SPREADSHEET_ID) +
+                    "&hoja=" +
                     encodeURIComponent(HOJA) +
                     "&columnaID=" +
                     encodeURIComponent(COLUMNA_ID) +
@@ -886,6 +899,11 @@
                             "apiUrl"
                         ) || "";
 
+                    SPREADSHEET_ID =
+                        JFCustomWidget.getWidgetSetting(
+                            "spreadsheetId"
+                        ) || "";
+
 
                     HOJA =
                         JFCustomWidget.getWidgetSetting(
@@ -965,6 +983,10 @@
                         API_URL
                     );
 
+                    console.log(
+                        "📊 SPREADSHEET_ID:",
+                        SPREADSHEET_ID
+                    );
 
                     console.log(
                         "📄 HOJA:",

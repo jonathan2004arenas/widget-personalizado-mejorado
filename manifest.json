@@ -11,6 +11,12 @@
       "required": true
     },
 
+    "spreadsheetId": {
+      "type": "text",
+      "label": "ID del Google Spreadsheet",
+      "required": true
+    },
+
     "hoja": {
       "type": "text",
       "label": "Nombre de la hoja",
@@ -21,16 +27,6 @@
       "type": "text",
       "label": "Nombre de la columna ID",
       "required": true
-    },
-
-    "autofillCondition": {
-      "type": "checkbox",
-      "label": "Autofill by condition"
-    },
-
-    "background": {
-      "type": "checkbox",
-      "label": "Run in the background"
     }
   }
 }
